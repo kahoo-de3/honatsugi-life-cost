@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>年収1,000万円の可処分所得（単身）</title>
+<style>
+  :root {
+    color-scheme: light;
+    --page:        #f9f9f7;
+    --surface-1:   #fcfcfb;
+    --ink-1:       #0b0b0b;
+    --ink-2:       #52514e;
+    --ink-muted:   #898781;
+    --grid:        #e1e0d9;
+    --baseline:    #c3c2b7;
+    --ring:        rgba(11,11,11,0.10);
+    --s1: #2a78d6;  /* 可処分所得 */
+    --s2: #008300;  /* 所得税 */
+    --s3: #e87ba4;  /* 厚生年金 */
+    --s4: #eda100;  /* 住民税 */
+    --s5: #1baf7a;  /* 健康保険 */
+    --s6: #eb6834;  /* 雇用保険 */
+    --s6l: #f4a273; /* 駐車場（自動車関連の淡色） */
+    --s7: #4a3aa7;
+    --s8: #e34948;
+    --s9: #8b8983; /* その他の生活費（中立グレー） */
+    --crit: #d03b3b; /* 赤字表示（両テーマ共通） */
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      color-scheme: dark;
+      --page:      #0d0d0d;
+      --surface-1: #1a1a19;
+      --ink-1:     #ffffff;
+      --ink-2:     #c3c2b7;
+      --ink-muted: #898781;
+      --grid:      #2c2c2a;
+      --baseline:  #383835;
+      --ring:      rgba(255,255,255,0.10);
+      --s1: #3987e5;
+      --s2: #008300;
+      --s3: #d55181;
+      --s4: #c98500;
+      --s5: #199e70;
+      --s6: #d95926;
+      --s6l: #e08a52;
+      --s7: #9085e9;
+      --s8: #e66767;
+      --s9: #a09e96;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --page:      #0d0d0d;
+    --surface-1: #1a1a19;
+    --ink-1:     #ffffff;
+    --ink-2:     #c3c2b7;
+    --ink-muted: #898781;
+    --grid:      #2c2c2a;
+    --baseline:  #383835;
+    --ring:      rgba(255,255,255,0.10);
+    --s1: #3987e5;
+    --s2: #008300;
+    --s3: #d55181;
+    --s4: #c98500;
+    --s5: #199e70;
+    --s6: #d95926;
+    --s6l: #e08a52;
+    --s7: #9085e9;
+    --s8: #e66767;
+    --s9: #a09e96;
+  }
+
+  body {
+    background: var(--page);
+    color: var(--ink-1);
+    font-family: system-ui, -apple-system, "Segoe UI", "Hiragino Sans", "Yu Gothic UI", "Noto Sans JP", Meiryo, sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 40px 20px 64px;
+  }
+  .wrap { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
+
+  header h1 {
+    font-size: 1.7rem;
+    font-weight: 700;
+    margin: 0 0 6px;
+    letter-spacing: 0.01em;
+    text-wrap: balance;
+  }
+  header p.lede { margin: 0; color: var(--ink-2); font-size: 0.95rem; max-width: 42em; }
+
+  h2.chapter {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin: 16px 0 -12px;
+    padding-left: 12px;
+    border-left: 4px solid var(--s1);
+    text-wrap: balance;
+  }
+
+  .eyebrow {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    color: var(--ink-muted);
+    margin: 0 0 10px;
+  }
+
+  .card {
+    background: var(--surface-1);
+    border: 1px solid var(--ring);
+    border-radius: 10px;
+    padding: 22px 24px;
+  }
+  .card h2 { font-size: 1.05rem; font-weight: 700; margin: 0 0 4px; }
+  .card p.sub { margin: 0 0 16px; color: var(--ink-2); font-size: 0.85rem; }
+
+  /* ---- stat tiles ---- */
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+  .tile { background: var(--surface-1); border: 1px solid var(--ring); border-radius: 10px; padding: 18px 20px; }
+  .tile .label { font-size: 0.78rem; color: var(--ink-2); margin: 0 0 4px; }
+  .tile .value { font-size: 1.75rem; font-weight: 700; margin: 0; line-height: 1.2; }
+  .tile .value small { font-size: 0.95rem; font-weight: 600; color: var(--ink-2); }
+  .tile .note { font-size: 0.78rem; color: var(--ink-muted); margin: 4px 0 0; }
+  .tile.hero { border-left: 4px solid var(--s1); }
+
+  /* ---- bar chart ---- */
+  .barchart { display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
+  .barrow { display: grid; grid-template-columns: 7.5em 1fr; align-items: center; gap: 12px; }
+  .barrow .name { font-size: 0.85rem; color: var(--ink-1); text-align: left; }
+  .bartrack { position: relative; height: 22px; }
+  .bartrack .baseline-rule { position: absolute; left: 0; top: -6px; bottom: -6px; width: 1px; background: var(--baseline); }
+  .bar {
+    position: absolute; left: 0; top: 0; height: 22px;
+    border-radius: 0 4px 4px 0;
+    min-width: 3px;
+    transition: opacity 120ms ease;
+  }
+  .barrow:hover .bar { opacity: 0.85; }
+  .barval {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    font-size: 0.8rem; color: var(--ink-2);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .bargrid { position: relative; grid-column: 2; height: 1.3em; }
+  .bargrid span { position: absolute; transform: translateX(-50%); font-size: 0.72rem; color: var(--ink-muted); font-variant-numeric: tabular-nums; }
+  .gridlines { position: absolute; inset: 0; pointer-events: none; }
+  .gridlines i { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--grid); }
+
+  /* ---- donut ---- */
+  .donutwrap { display: flex; flex-wrap: wrap; gap: 28px; align-items: center; margin-top: 8px; }
+  .donutbox { position: relative; width: 260px; height: 260px; flex: 0 0 auto; }
+  .donutbox svg { display: block; width: 100%; height: 100%; }
+  .donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; pointer-events: none; }
+  .donut-center .pct { font-size: 1.9rem; font-weight: 700; line-height: 1.1; }
+  .donut-center .lbl { font-size: 0.75rem; color: var(--ink-2); }
+  .legend { flex: 1 1 260px; display: flex; flex-direction: column; gap: 8px; min-width: 240px; }
+  .legend .lrow {
+    display: grid; grid-template-columns: 14px 1fr auto auto; gap: 10px; align-items: center;
+    font-size: 0.85rem; padding: 3px 6px; border-radius: 6px;
+  }
+  .legend .lrow:hover { background: color-mix(in srgb, var(--ink-1) 5%, transparent); }
+  .legend .chip { width: 12px; height: 12px; border-radius: 3px; }
+  .legend .amt { font-variant-numeric: tabular-nums; color: var(--ink-1); }
+  .legend .pc  { font-variant-numeric: tabular-nums; color: var(--ink-muted); width: 4em; text-align: right; }
+  .legend .total { border-top: 1px solid var(--grid); margin-top: 4px; padding-top: 8px; font-weight: 600; }
+
+  /* ---- tables ---- */
+  .tables { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  th, td { padding: 6px 4px; text-align: left; border-bottom: 1px solid var(--grid); }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  tr.total td { font-weight: 700; border-bottom: none; border-top: 2px solid var(--baseline); }
+  tr.indent td:first-child { padding-left: 1.2em; color: var(--ink-2); }
+  caption { text-align: left; font-weight: 700; font-size: 0.95rem; padding-bottom: 8px; }
+
+  .assump { font-size: 0.8rem; color: var(--ink-2); }
+  .assump ul { margin: 6px 0 0; padding-left: 1.3em; }
+  .assump li { margin: 2px 0; }
+  footer { font-size: 0.75rem; color: var(--ink-muted); max-width: 46em; }
+
+  /* ---- tooltip ---- */
+  #tip {
+    position: fixed; z-index: 10; pointer-events: none;
+    background: var(--surface-1); border: 1px solid var(--ring);
+    border-radius: 8px; padding: 8px 12px;
+    font-size: 0.8rem; box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+    display: none; max-width: 240px;
+  }
+  #tip .t-name { font-weight: 700; margin-bottom: 2px; }
+  #tip .t-val { font-variant-numeric: tabular-nums; color: var(--ink-2); }
+
+  @media (max-width: 560px) {
+    .barrow { grid-template-columns: 6em 1fr; }
+    .donutwrap { justify-content: center; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">給与収入 1,000万円 ・ 単身者 ・ 神奈川県厚木市在住 ・ 2025年（令和7年）分</p>
+    <h1>年収1,000万円の可処分所得</h1>
+    <p class="lede">神奈川県厚木市在住・給与収入1,000万円の単身者について、社会保険料・所得税・住民税を差し引いた可処分所得（手取り）を試算したものです。</p>
+  </header>
+
+  <h2 class="chapter">① 年収1,000万円の可処分所得</h2>
+
+  <div class="stats">
+    <div class="tile hero">
+      <p class="label">可処分所得（手取り）</p>
+      <p class="value">726<small>万</small>6,400<small>円</small></p>
+      <p class="note">月あたり約60.6万円</p>
+    </div>
+    <div class="tile">
+      <p class="label">手取り率</p>
+      <p class="value">72.7<small>%</small></p>
+      <p class="note">額面に対する割合</p>
+    </div>
+    <div class="tile">
+      <p class="label">控除合計（税・社会保険料）</p>
+      <p class="value">273<small>万</small>3,600<small>円</small></p>
+      <p class="note">額面の27.3%</p>
+    </div>
+  </div>
+
+  <section class="card">
+    <h2>控除額の内訳（年額）</h2>
+    <p class="sub">年間の控除額。大きい順に表示しています。</p>
+    <div class="barchart" id="barchart"></div>
+  </section>
+
+  <section class="card">
+    <h2>年収1,000万円の構成（年額）</h2>
+    <p class="sub">額面年収に占める可処分所得と各控除の割合。</p>
+    <div class="donutwrap">
+      <div class="donutbox">
+        <svg id="donut" viewBox="0 0 260 260" role="img" aria-label="年収1,000万円の構成の円グラフ。可処分所得72.7%、所得税8.3%、厚生年金7.1%、住民税6.4%、健康保険4.9%、雇用保険0.5%。"></svg>
+        <div class="donut-center">
+          <div class="pct">72.7%</div>
+          <div class="lbl">可処分所得</div>
+        </div>
+      </div>
+      <div class="legend" id="legend"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>計算過程</h2>
+    <p class="sub">2025年度税制（基礎控除の改正後）に基づく概算です。</p>
+    <div class="tables">
+      <table>
+        <caption>（1）社会保険料（年額）</caption>
+        <tr><td>厚生年金保険料（9.15%・上限適用）</td><td class="num">713,700円</td></tr>
+        <tr><td>健康保険料（協会けんぽ神奈川 4.96%）</td><td class="num">494,000円</td></tr>
+        <tr><td>雇用保険料（0.55%）</td><td class="num">55,000円</td></tr>
+        <tr class="total"><td>社会保険料 合計</td><td class="num">1,262,700円</td></tr>
+      </table>
+      <table>
+        <caption>（2）所得税（復興特別所得税含む）</caption>
+        <tr><td>給与収入</td><td class="num">10,000,000円</td></tr>
+        <tr class="indent"><td>給与所得控除（上限）</td><td class="num">▲1,950,000円</td></tr>
+        <tr><td>給与所得</td><td class="num">8,050,000円</td></tr>
+        <tr class="indent"><td>社会保険料控除</td><td class="num">▲1,262,700円</td></tr>
+        <tr class="indent"><td>基礎控除</td><td class="num">▲580,000円</td></tr>
+        <tr><td>課税所得（千円未満切捨）</td><td class="num">6,207,000円</td></tr>
+        <tr><td>税率20% − 427,500円</td><td class="num">813,900円</td></tr>
+        <tr class="total"><td>所得税額（×1.021）</td><td class="num">830,900円</td></tr>
+      </table>
+      <table>
+        <caption>（3）住民税（厚木市・翌年度課税）</caption>
+        <tr><td>給与所得</td><td class="num">8,050,000円</td></tr>
+        <tr class="indent"><td>社会保険料控除</td><td class="num">▲1,262,700円</td></tr>
+        <tr class="indent"><td>基礎控除</td><td class="num">▲430,000円</td></tr>
+        <tr><td>課税所得（千円未満切捨）</td><td class="num">6,357,000円</td></tr>
+        <tr><td>市民税所得割 6% − 調整控除1,500円</td><td class="num">379,900円</td></tr>
+        <tr><td>県民税所得割 4.025% − 調整控除1,000円</td><td class="num">254,800円</td></tr>
+        <tr><td>均等割・森林環境税（県+300円含む）</td><td class="num">5,300円</td></tr>
+        <tr class="total"><td>住民税額</td><td class="num">640,000円</td></tr>
+      </table>
+      <table>
+        <caption>（4）可処分所得</caption>
+        <tr><td>給与収入</td><td class="num">10,000,000円</td></tr>
+        <tr class="indent"><td>社会保険料</td><td class="num">▲1,262,700円</td></tr>
+        <tr class="indent"><td>所得税</td><td class="num">▲830,900円</td></tr>
+        <tr class="indent"><td>住民税</td><td class="num">▲640,000円</td></tr>
+        <tr class="total"><td>可処分所得</td><td class="num">7,266,400円</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <h2 class="chapter">② 生活費用と貯蓄可能額</h2>
+
+  <section class="card">
+    <h2>可処分所得の使いみち（年額）</h2>
+    <p class="sub">本厚木駅から徒歩10分圏内で暮らす単身者の平均的な生活費（推測を含む概算）を、可処分所得726万6,400円（＝100%）から差し引いたモデルです。円グラフでは日用品・被服・娯楽・保険などの6項目を「その他の生活費」としてまとめています（個別の金額は下の表を参照）。</p>
+    <div class="stats" style="margin-bottom:18px">
+      <div class="tile hero">
+        <p class="label">貯蓄可能額（年間）</p>
+        <p class="value">454<small>万</small>2,400<small>円</small></p>
+        <p class="note">可処分所得の62.5% ・ 月あたり約37.9万円</p>
+      </div>
+      <div class="tile">
+        <p class="label">生活費合計（年間）</p>
+        <p class="value">272<small>万</small>4,000<small>円</small></p>
+        <p class="note">可処分所得の37.5% ・ 月あたり22.7万円</p>
+      </div>
+    </div>
+    <div class="donutwrap">
+      <div class="donutbox">
+        <svg id="donut2" viewBox="0 0 260 260" role="img" aria-label="可処分所得の使いみちの円グラフ。貯蓄可能額62.5%、家賃9.9%、食費7.4%、車両維持費2.8%、駐車場代2.0%、水道光熱費2.1%、交際費2.5%、通信費1.7%、医療費1.2%、その他の生活費7.9%。"></svg>
+        <div class="donut-center">
+          <div class="pct">62.5%</div>
+          <div class="lbl">貯蓄可能額</div>
+        </div>
+      </div>
+      <div class="legend" id="legend2"></div>
+    </div>
+    <table style="margin-top:20px">
+      <caption>生活費の内訳と根拠（単身・本厚木駅 徒歩10分圏）</caption>
+      <tr><th>項目</th><th style="text-align:right">月額</th><th style="text-align:right">年額</th><th>根拠・備考</th></tr>
+      <tr><td>家賃（1K〜1DK・共益費込）</td><td class="num">60,000円</td><td class="num">720,000円</td><td>本厚木駅 徒歩10分圏の1K相場（5〜6万円台）から推定</td></tr>
+      <tr><td>食費</td><td class="num">45,000円</td><td class="num">540,000円</td><td>総務省家計調査・単身世帯平均を基に推定</td></tr>
+      <tr><td>水道光熱費</td><td class="num">13,000円</td><td class="num">156,000円</td><td>単身世帯平均</td></tr>
+      <tr><td>通信費</td><td class="num">10,000円</td><td class="num">120,000円</td><td>スマートフォン＋自宅回線</td></tr>
+      <tr><td>医療費</td><td class="num">7,000円</td><td class="num">84,000円</td><td>単身世帯平均（保健医療支出）</td></tr>
+      <tr><td>交際費</td><td class="num">15,000円</td><td class="num">180,000円</td><td>単身世帯平均よりやや多めに設定</td></tr>
+      <tr><td>駐車場代</td><td class="num">12,000円</td><td class="num">144,000円</td><td>本厚木駅周辺の月極相場（平置き8千〜1.5万円）から推定</td></tr>
+      <tr><td>車両維持費（日産ノート・車両代除く）</td><td class="num">17,000円</td><td class="num">204,000円</td><td>自動車税30,500円＋車検按分 約4.5万円＋任意保険 約6万円＋燃料 約5万円＋メンテ 約2万円</td></tr>
+      <tr><td>日用品・消耗品</td><td class="num">5,000円</td><td class="num">60,000円</td><td>洗剤・トイレタリー等、単身世帯平均</td></tr>
+      <tr><td>被服・理美容</td><td class="num">10,000円</td><td class="num">120,000円</td><td>衣類・美容院・化粧品等、単身世帯平均</td></tr>
+      <tr><td>趣味・娯楽・サブスク</td><td class="num">15,000円</td><td class="num">180,000円</td><td>教養娯楽費。動画・音楽配信、NHK受信料等を含む</td></tr>
+      <tr><td>民間保険料（生命・医療）</td><td class="num">5,000円</td><td class="num">60,000円</td><td>単身者の平均的な掛金水準（生命保険料控除は税計算に未反映）</td></tr>
+      <tr><td>住まいの更新料・火災保険</td><td class="num">3,000円</td><td class="num">36,000円</td><td>2年毎の更新料（家賃1か月分）と火災保険料の月割</td></tr>
+      <tr><td>予備費（帰省・家電買替・冠婚葬祭など）</td><td class="num">10,000円</td><td class="num">120,000円</td><td>不定期の特別支出の月割</td></tr>
+      <tr class="total"><td>生活費 合計</td><td class="num">227,000円</td><td class="num">2,724,000円</td><td></td></tr>
+      <tr class="total"><td>貯蓄可能額</td><td class="num">約378,500円</td><td class="num">4,542,400円</td><td>可処分所得 7,266,400円 − 生活費 2,724,000円</td></tr>
+    </table>
+  </section>
+
+  <section class="card">
+    <h2>可処分所得の使いみち（月額）</h2>
+    <p class="sub">月あたりの可処分所得 605,533円（年額の1/12）を100%とした内訳です。</p>
+    <div class="donutwrap">
+      <div class="donutbox">
+        <svg id="donut3" viewBox="0 0 260 260" role="img" aria-label="可処分所得（月額）の使いみちの円グラフ。貯蓄可能額62.5%、家賃9.9%、食費7.4%、車両維持費2.8%、駐車場代2.0%、水道光熱費2.1%、交際費2.5%、通信費1.7%、医療費1.2%、その他の生活費7.9%。"></svg>
+        <div class="donut-center">
+          <div class="pct">62.5%</div>
+          <div class="lbl">貯蓄可能額</div>
+        </div>
+      </div>
+      <div class="legend" id="legend3"></div>
+    </div>
+  </section>
+
+  <h2 class="chapter">③ 日本の平均年収（478万円）の場合</h2>
+
+  <section class="card">
+    <h2>可処分所得の計算（平均年収478万円）</h2>
+    <p class="sub">国税庁「令和6年分 民間給与実態統計調査」の平均給与478万円を、①と同じ条件（厚木市在住・単身・40歳未満）で計算したものです。</p>
+    <div class="stats" style="margin-bottom:18px">
+      <div class="tile hero">
+        <p class="label">可処分所得（手取り）</p>
+        <p class="value">373<small>万</small>120<small>円</small></p>
+        <p class="note">手取り率78.0% ・ 月あたり約31.1万円</p>
+      </div>
+      <div class="tile">
+        <p class="label">貯蓄可能額（年間）</p>
+        <p class="value">100<small>万</small>6,120<small>円</small></p>
+        <p class="note">可処分所得の27.0% ・ 月あたり約8.4万円</p>
+      </div>
+      <div class="tile">
+        <p class="label">貯蓄可能額の減少（年収1,000万円比）</p>
+        <p class="value">▲353<small>万</small>6,280<small>円</small></p>
+        <p class="note">454万2,400円 → 100万6,120円（約78%減）</p>
+      </div>
+    </div>
+    <div class="tables">
+      <table>
+        <caption>（1）社会保険料（年額）</caption>
+        <tr><td>厚生年金保険料（9.15%・標準報酬月額41万円）</td><td class="num">450,180円</td></tr>
+        <tr><td>健康保険料（協会けんぽ神奈川 4.96%）</td><td class="num">244,000円</td></tr>
+        <tr><td>雇用保険料（0.55%）</td><td class="num">26,300円</td></tr>
+        <tr class="total"><td>社会保険料 合計</td><td class="num">720,480円</td></tr>
+      </table>
+      <table>
+        <caption>（2）所得税（復興特別所得税含む）</caption>
+        <tr><td>給与収入</td><td class="num">4,780,000円</td></tr>
+        <tr class="indent"><td>給与所得控除（収入×20%＋44万円）</td><td class="num">▲1,396,000円</td></tr>
+        <tr><td>給与所得</td><td class="num">3,384,000円</td></tr>
+        <tr class="indent"><td>社会保険料控除</td><td class="num">▲720,480円</td></tr>
+        <tr class="indent"><td>基礎控除（令和7年分・上乗せ後）</td><td class="num">▲680,000円</td></tr>
+        <tr><td>課税所得（千円未満切捨）</td><td class="num">1,983,000円</td></tr>
+        <tr><td>税率10% − 97,500円</td><td class="num">100,800円</td></tr>
+        <tr class="total"><td>所得税額（×1.021）</td><td class="num">102,900円</td></tr>
+      </table>
+      <table>
+        <caption>（3）住民税（厚木市・翌年度課税）</caption>
+        <tr><td>給与所得</td><td class="num">3,384,000円</td></tr>
+        <tr class="indent"><td>社会保険料控除</td><td class="num">▲720,480円</td></tr>
+        <tr class="indent"><td>基礎控除</td><td class="num">▲430,000円</td></tr>
+        <tr><td>課税所得（千円未満切捨）</td><td class="num">2,233,000円</td></tr>
+        <tr><td>市民税所得割 6% − 調整控除1,500円</td><td class="num">132,400円</td></tr>
+        <tr><td>県民税所得割 4.025% − 調整控除1,000円</td><td class="num">88,800円</td></tr>
+        <tr><td>均等割・森林環境税（県+300円含む）</td><td class="num">5,300円</td></tr>
+        <tr class="total"><td>住民税額</td><td class="num">226,500円</td></tr>
+      </table>
+      <table>
+        <caption>（4）可処分所得</caption>
+        <tr><td>給与収入</td><td class="num">4,780,000円</td></tr>
+        <tr class="indent"><td>社会保険料</td><td class="num">▲720,480円</td></tr>
+        <tr class="indent"><td>所得税</td><td class="num">▲102,900円</td></tr>
+        <tr class="indent"><td>住民税</td><td class="num">▲226,500円</td></tr>
+        <tr class="total"><td>可処分所得</td><td class="num">3,730,120円</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>可処分所得の使いみち（年額・平均年収478万円）</h2>
+    <p class="sub">生活費は②のモデル（月22万7,000円・年272万4,000円）を減らさずそのまま据え置いた場合の内訳です。可処分所得373万120円を100%としています。</p>
+    <div class="donutwrap">
+      <div class="donutbox">
+        <svg id="donut4" viewBox="0 0 260 260" role="img" aria-label="平均年収478万円の可処分所得の使いみちの円グラフ。貯蓄可能額27.0%、家賃19.3%、食費14.5%、車両維持費5.5%、駐車場代3.9%、水道光熱費4.2%、交際費4.8%、通信費3.2%、医療費2.3%、その他の生活費15.4%。"></svg>
+        <div class="donut-center">
+          <div class="pct">27.0%</div>
+          <div class="lbl">貯蓄可能額</div>
+        </div>
+      </div>
+      <div class="legend" id="legend4"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>可処分所得の使いみち（月額・平均年収478万円）</h2>
+    <p class="sub">月あたりの可処分所得 310,843円（年額の1/12）を100%とした内訳です。生活費は月22万7,000円で据え置いています。</p>
+    <div class="donutwrap">
+      <div class="donutbox">
+        <svg id="donut5" viewBox="0 0 260 260" role="img" aria-label="平均年収478万円の可処分所得（月額）の使いみちの円グラフ。貯蓄可能額27.0%、家賃19.3%、食費14.5%、車両維持費5.5%、駐車場代3.9%、水道光熱費4.2%、交際費4.8%、通信費3.2%、医療費2.3%、その他の生活費15.4%。"></svg>
+        <div class="donut-center">
+          <div class="pct">27.0%</div>
+          <div class="lbl">貯蓄可能額</div>
+        </div>
+      </div>
+      <div class="legend" id="legend5"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>貯蓄可能額の比較（年額）</h2>
+    <p class="sub">同じ生活水準（生活費 年272万4,000円）を維持した場合、平均年収では貯蓄可能額が年353万6,280円（約78%）減少します。月あたりでは約37.9万円 → 約8.4万円です。</p>
+    <div class="barchart" id="savebars"></div>
+  </section>
+
+  <h2 class="chapter">④ 自宅購入に掛かる費用（メイツ本厚木）</h2>
+
+  <section class="card">
+    <h2>物件と前提</h2>
+    <p class="sub">メイツ本厚木（本厚木駅 徒歩5分・2026年9月下旬入居予定）。単身と同条件の広さとして最小タイプの1DK・34㎡台（3,300万円台〜）を選び、試算価格を3,350万円と仮定しています。管理費・修繕積立金等は未公表のため推測値です。</p>
+    <div class="stats" style="margin-bottom:18px">
+      <div class="tile">
+        <p class="label">ⅰ 購入総額（物件価格＋諸費用）</p>
+        <p class="value">約3,540<small>万円</small></p>
+        <p class="note">物件3,350万円＋諸費用 約190万円</p>
+      </div>
+      <div class="tile">
+        <p class="label">ⅱ フラット35 総返済額（35年・頭金なし）</p>
+        <p class="value">約5,613<small>万円</small></p>
+        <p class="note">金利3.25%・月返済133,643円 ・ 諸費用込み総負担 約5,803万円</p>
+      </div>
+      <div class="tile hero">
+        <p class="label">ⅲ 月間負担額（維持費込み）</p>
+        <p class="value">約16.3<small>万円</small></p>
+        <p class="note">年間 約195万8,000円</p>
+      </div>
+    </div>
+    <div class="tables">
+      <table>
+        <caption>ⅰ 購入総額の内訳</caption>
+        <tr><td>物件価格（1DK・34㎡台）</td><td class="num">33,500,000円</td></tr>
+        <tr class="indent"><td>フラット35融資手数料（2.2%）</td><td class="num">737,000円</td></tr>
+        <tr class="indent"><td>登記費用・司法書士報酬</td><td class="num">300,000円</td></tr>
+        <tr class="indent"><td>印紙税</td><td class="num">30,000円</td></tr>
+        <tr class="indent"><td>不動産取得税（新築軽減の対象外）</td><td class="num">350,000円</td></tr>
+        <tr class="indent"><td>修繕積立基金（一時金）</td><td class="num">300,000円</td></tr>
+        <tr class="indent"><td>管理準備金</td><td class="num">30,000円</td></tr>
+        <tr class="indent"><td>火災・地震保険（5年）</td><td class="num">100,000円</td></tr>
+        <tr class="indent"><td>固定資産税等の精算金ほか</td><td class="num">50,000円</td></tr>
+        <tr class="total"><td>購入総額</td><td class="num">35,397,000円</td></tr>
+      </table>
+      <table>
+        <caption>ⅱ フラット35（全期間固定・頭金なし）</caption>
+        <tr><td>借入額（物件価格全額）</td><td class="num">33,500,000円</td></tr>
+        <tr><td>金利（2026年7月・融資率9割超の最多金利）</td><td class="num">年3.25%</td></tr>
+        <tr><td>返済期間 / 方式</td><td class="num">35年 / 元利均等</td></tr>
+        <tr><td>毎月返済額</td><td class="num">133,643円</td></tr>
+        <tr><td>総返済額（利息 約2,263万円を含む）</td><td class="num">56,130,060円</td></tr>
+        <tr class="total"><td>諸費用込みの総負担額</td><td class="num">58,027,060円</td></tr>
+      </table>
+      <table>
+        <caption>ⅲ 年間・月間の負担額</caption>
+        <tr><th>項目</th><th style="text-align:right">月間</th><th style="text-align:right">年間</th></tr>
+        <tr><td>ローン返済</td><td class="num">133,643円</td><td class="num">1,603,716円</td></tr>
+        <tr><td>管理費（推測）</td><td class="num">10,000円</td><td class="num">120,000円</td></tr>
+        <tr><td>修繕積立金（段階増額の平均・推測）</td><td class="num">7,000円</td><td class="num">84,000円</td></tr>
+        <tr><td>固定資産税・都市計画税（月割・推測）</td><td class="num">12,500円</td><td class="num">150,000円</td></tr>
+        <tr class="total"><td>負担額 合計</td><td class="num">163,143円</td><td class="num">1,957,716円</td></tr>
+      </table>
+    </div>
+    <p class="sub" style="margin-top:14px">②の賃貸モデル（家賃6万円＋更新料等3千円＝月6.3万円）と比べると、住居費は月あたり約10万円増えます。なお34㎡のため、不動産取得税・固定資産税の新築軽減（床面積50㎡以上が要件）と住宅ローン控除（同40㎡以上）はいずれも対象外として計算しています。</p>
+  </section>
+
+  <section class="card">
+    <h2>可処分所得の使いみち（年額・購入した場合）</h2>
+    <p class="sub">年収1,000万円の可処分所得726万6,400円を100%とし、②の家賃・更新料等を④の住宅費（月16万3,143円）に置き換えた場合です。火災保険は購入時諸費用に含めたため「その他の生活費」は月4万5,000円に減っています。</p>
+    <div class="stats" style="margin-bottom:18px">
+      <div class="tile hero">
+        <p class="label">貯蓄可能額（購入した場合・年間）</p>
+        <p class="value">334<small>万</small>684<small>円</small></p>
+        <p class="note">可処分所得の46.0% ・ 月あたり約27.8万円</p>
+      </div>
+      <div class="tile">
+        <p class="label">賃貸のままとの差</p>
+        <p class="value">▲120<small>万</small>1,716<small>円</small></p>
+        <p class="note">年454万2,400円 → 334万684円（月あたり約▲10万円）</p>
+      </div>
+      <div class="tile" style="border-left:4px solid var(--crit)">
+        <p class="label">平均年収478万円で購入した場合</p>
+        <p class="value" style="color:var(--crit)">▲19<small>万</small>5,596<small>円</small>/年</p>
+        <p class="note" style="color:var(--crit)">年間収支は赤字（月あたり▲16,300円）。生活費＋住宅費 392万5,716円が可処分所得 373万120円を上回り、貯蓄はできません</p>
+      </div>
+    </div>
+    <div class="donutwrap">
+      <div class="donutbox">
+        <svg id="donut6" viewBox="0 0 260 260" role="img" aria-label="購入した場合の可処分所得の使いみちの円グラフ（年額）。貯蓄可能額46.0%、住宅費26.9%、食費7.4%、車両維持費2.8%、駐車場代2.0%、水道光熱費2.1%、交際費2.5%、通信費1.7%、医療費1.2%、その他の生活費7.4%。"></svg>
+        <div class="donut-center">
+          <div class="pct">46.0%</div>
+          <div class="lbl">貯蓄可能額</div>
+        </div>
+      </div>
+      <div class="legend" id="legend6"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>可処分所得の使いみち（月額・購入した場合）</h2>
+    <p class="sub">月あたりの可処分所得 605,533円を100%とした内訳です。住宅費は月16万3,143円（ローン返済＋管理費＋修繕積立金＋固定資産税等）。</p>
+    <div class="donutwrap">
+      <div class="donutbox">
+        <svg id="donut7" viewBox="0 0 260 260" role="img" aria-label="購入した場合の可処分所得（月額）の使いみちの円グラフ。貯蓄可能額46.0%、住宅費26.9%、食費7.4%、車両維持費2.8%、駐車場代2.0%、水道光熱費2.1%、交際費2.5%、通信費1.7%、医療費1.2%、その他の生活費7.4%。"></svg>
+        <div class="donut-center">
+          <div class="pct">46.0%</div>
+          <div class="lbl">貯蓄可能額</div>
+        </div>
+      </div>
+      <div class="legend" id="legend7"></div>
+    </div>
+  </section>
+
+  <h2 class="chapter">⑤ 35年後の資産価値</h2>
+
+  <section class="card">
+    <h2>築35年時点の想定資産価値（メイツ本厚木 1DK・34㎡）</h2>
+    <p class="sub">本厚木駅周辺の築30〜35年の中古マンションの売出し事例・相場（2026年2月時点）から、ローン完済時（築35年）の資産価値を推測したものです。</p>
+    <div class="stats" style="margin-bottom:18px">
+      <div class="tile hero">
+        <p class="label">想定資産価値（築35年・34㎡）</p>
+        <p class="value">約600<small>万円</small></p>
+        <p class="note">レンジ 400万〜700万円（㎡単価12〜20万円で試算）</p>
+      </div>
+      <div class="tile" style="border-left:4px solid var(--crit)">
+        <p class="label">新築時からの下落</p>
+        <p class="value" style="color:var(--crit)">▲2,750<small>万円</small></p>
+        <p class="note" style="color:var(--crit)">3,350万円 → 約600万円（約▲82%）</p>
+      </div>
+      <div class="tile">
+        <p class="label">35年後のローン残債</p>
+        <p class="value">0<small>円</small></p>
+        <p class="note">フラット35完済。資産価値がそのまま手残りに</p>
+      </div>
+    </div>
+    <table>
+      <caption>近隣の築30〜35年物件の相場・売出し事例（本厚木駅周辺）</caption>
+      <tr><th>事例・指標</th><th style="text-align:right">価格</th><th style="text-align:right">㎡単価</th><th>備考</th></tr>
+      <tr><td>ワンルーム 14.2㎡・築35年（1991年築）</td><td class="num">410万円</td><td class="num">約28.9万円/㎡</td><td>小型住戸は㎡単価が高く出る傾向</td></tr>
+      <tr><td>2LDK 51.3㎡・築34年（1991年築）</td><td class="num">600万円</td><td class="num">約11.7万円/㎡</td><td>駅からの距離等の条件で単価は低め</td></tr>
+      <tr><td>本厚木駅 中古マンション平均（全築年数）</td><td class="num">1,865万円<span style="color:var(--ink-muted)">（70㎡換算）</span></td><td class="num">約26.6万円/㎡</td><td>88.1万円/坪・前年比▲9.5%で下落傾向</td></tr>
+      <tr><td>減価の目安（参考試算例）</td><td class="num" colspan="2">新築2,000万円 → 築30年 約1,154万円</td><td>残存率約58%。駅徒歩5分は価値維持に有利な条件</td></tr>
+      <tr class="total"><td>本試算：34㎡ × 12〜20万円/㎡</td><td class="num" colspan="2">約400万〜700万円（中心値 約600万円）</td><td>築35年・管理状態普通と仮定した推測値</td></tr>
+    </table>
+    <p class="sub" style="margin-top:14px">35年間の総負担 約7,042万円（購入総額の諸費用190万円＋年約195.8万円×35年）から想定売却額 約600万円を差し引いた実質の住居コストは<strong>約6,442万円（月換算 約15.3万円）</strong>です。同期間を賃貸（月6.3万円）で通した場合の約2,646万円と比べると約3,800万円大きく、購入の経済合理性は「広さ・新しさ・持ち家の安心」への対価と考える必要があります。ただし35年後の実際の価格は、市況・金利・厚木市の人口動態・管理修繕の状態で大きく変わり得ます。</p>
+  </section>
+
+  <section class="card assump">
+    <h2>前提条件</h2>
+    <ul>
+      <li>単身者・40歳未満（介護保険料なし）・扶養親族なし</li>
+      <li>賞与なし（年収を12等分して毎月支給）と仮定。標準報酬月額：健康保険83万円、厚生年金は上限65万円</li>
+      <li>健康保険は協会けんぽ・神奈川県（令和7年度 料率9.92%、労使折半）</li>
+      <li>所得控除は社会保険料控除と基礎控除のみ（iDeCo・生命保険料控除・ふるさと納税等は考慮せず）</li>
+      <li>所得税は令和7年分（基礎控除58万円）で計算</li>
+      <li>住民税は厚木市の令和8年度分（基礎控除43万円）。神奈川県の水源環境保全・再生のための超過課税（所得割+0.025%・均等割+300円）を反映</li>
+      <li>③の平均年収478万円は国税庁「令和6年分 民間給与実態統計調査」の平均給与。標準報酬月額41万円、所得税の基礎控除は68万円（令和7・8年分の上乗せ後）で計算</li>
+      <li>③の生活費は②のモデル（月22万7,000円）を減らさずそのまま適用</li>
+      <li>④の物件は明和地所「メイツ本厚木」の1DK・34㎡台（3,300万円台〜）を3,350万円と仮定。管理費・修繕積立金・税額等の非公表項目は推測値</li>
+      <li>④のフラット35金利は2026年7月・融資率9割超（頭金なし）・借入期間21〜35年の最多金利 年3.25%（新機構団信付き）を使用</li>
+      <li>⑤の資産価値は本厚木駅周辺の築30〜35年物件の売出し事例（2026年2月時点）からの推測。将来の市況・金利・人口動態・管理状態により大きく変動し得る</li>
+    </ul>
+  </section>
+
+  <footer>
+    本試算は概算です。実際の手取り額は、勤務先の健康保険組合の料率、賞与の有無と配分、居住自治体、適用される各種控除などにより変動します。正確な金額は源泉徴収票・住民税決定通知書をご確認ください。
+  </footer>
+</div>
+
+<div id="tip"><div class="t-name"></div><div class="t-val"></div></div>
+
+<script>
+(function () {
+  var GROSS = 10000000;
+  var deductions = [
+    { name: "所得税",   amt: 830900, color: "var(--s2)" },
+    { name: "厚生年金", amt: 713700, color: "var(--s3)" },
+    { name: "住民税",   amt: 640000, color: "var(--s4)" },
+    { name: "健康保険", amt: 494000, color: "var(--s5)" },
+    { name: "雇用保険", amt: 55000,  color: "var(--s6)" }
+  ];
+  var net = { name: "可処分所得", amt: 7266400, color: "var(--s1)" };
+
+  function yen(n) { return n.toLocaleString("ja-JP") + "円"; }
+  function pctOf(n, total) { return (n / total * 100).toFixed(1) + "%"; }
+
+  /* tooltip */
+  var tip = document.getElementById("tip");
+  function showTip(e, name, amt, total, base) {
+    tip.querySelector(".t-name").textContent = name;
+    tip.querySelector(".t-val").textContent = yen(amt) + "（" + base + "の" + pctOf(amt, total) + "）";
+    tip.style.display = "block";
+    moveTip(e);
+  }
+  function moveTip(e) {
+    var x = e.clientX + 14, y = e.clientY + 14;
+    if (x + 250 > window.innerWidth) x = e.clientX - 250;
+    tip.style.left = x + "px";
+    tip.style.top = y + "px";
+  }
+  function hideTip() { tip.style.display = "none"; }
+  function bindTip(el, name, amt, total, base) {
+    el.addEventListener("mouseenter", function (e) { showTip(e, name, amt, total, base); });
+    el.addEventListener("mousemove", moveTip);
+    el.addEventListener("mouseleave", hideTip);
+  }
+
+  /* ---- bar chart ---- */
+  var MAX = 1000000; /* axis max */
+  var TICKS = [0, 25, 50, 75, 100]; /* 万円 */
+  var bc = document.getElementById("barchart");
+  deductions.forEach(function (d) {
+    var row = document.createElement("div");
+    row.className = "barrow";
+    var w = (d.amt / MAX * 100);
+    row.innerHTML =
+      '<div class="name">' + d.name + '</div>' +
+      '<div class="bartrack">' +
+        '<div class="gridlines"></div>' +
+        '<div class="baseline-rule"></div>' +
+        '<div class="bar" style="width:' + w + '%; background:' + d.color + '"></div>' +
+        '<div class="barval" style="left:calc(' + w + '% + 8px)">' + yen(d.amt) + '</div>' +
+      '</div>';
+    var gl = row.querySelector(".gridlines");
+    TICKS.forEach(function (m) {
+      if (m === 0) return;
+      var i = document.createElement("i");
+      i.style.left = (m * 10000 / MAX * 100) + "%";
+      gl.appendChild(i);
+    });
+    bindTip(row.querySelector(".bartrack"), d.name, d.amt, GROSS, "額面");
+    bc.appendChild(row);
+  });
+  /* axis labels */
+  var ax = document.createElement("div");
+  ax.className = "barrow";
+  ax.innerHTML = '<div class="name"></div><div class="bargrid"></div>';
+  var grid = ax.querySelector(".bargrid");
+  TICKS.forEach(function (m) {
+    var s = document.createElement("span");
+    s.style.left = (m * 10000 / MAX * 100) + "%";
+    s.textContent = m === 0 ? "0" : m + "万円";
+    grid.appendChild(s);
+  });
+  bc.appendChild(ax);
+
+  /* ---- donuts ---- */
+  var NS = "http://www.w3.org/2000/svg";
+  function makeDonut(svgId, slices, total, base) {
+    var svg = document.getElementById(svgId);
+    var cx = 130, cy = 130, rOut = 118, rIn = 74;
+    var start = -Math.PI / 2;
+    slices.forEach(function (d) {
+      var frac = d.amt / total;
+      var end = start + frac * Math.PI * 2;
+      var large = (end - start) > Math.PI ? 1 : 0;
+      var x1 = cx + rOut * Math.cos(start), y1 = cy + rOut * Math.sin(start);
+      var x2 = cx + rOut * Math.cos(end),   y2 = cy + rOut * Math.sin(end);
+      var x3 = cx + rIn * Math.cos(end),    y3 = cy + rIn * Math.sin(end);
+      var x4 = cx + rIn * Math.cos(start),  y4 = cy + rIn * Math.sin(start);
+      var p = document.createElementNS(NS, "path");
+      p.setAttribute("d",
+        "M" + x1 + " " + y1 +
+        " A" + rOut + " " + rOut + " 0 " + large + " 1 " + x2 + " " + y2 +
+        " L" + x3 + " " + y3 +
+        " A" + rIn + " " + rIn + " 0 " + large + " 0 " + x4 + " " + y4 + " Z");
+      p.setAttribute("fill", d.color);
+      p.setAttribute("stroke", "var(--surface-1)");
+      p.setAttribute("stroke-width", "2");
+      p.style.cursor = "default";
+      bindTip(p, d.name, d.amt, total, base);
+      svg.appendChild(p);
+      start = end;
+    });
+  }
+  function makeLegend(legendId, slices, total, base, totalLabel) {
+    var lg = document.getElementById(legendId);
+    slices.forEach(function (d) {
+      var row = document.createElement("div");
+      row.className = "lrow";
+      row.innerHTML =
+        '<span class="chip" style="background:' + d.color + '"></span>' +
+        '<span>' + d.name + '</span>' +
+        '<span class="amt">' + yen(d.amt) + '</span>' +
+        '<span class="pc">' + pctOf(d.amt, total) + '</span>';
+      bindTip(row, d.name, d.amt, total, base);
+      lg.appendChild(row);
+    });
+    var tr = document.createElement("div");
+    tr.className = "lrow total";
+    tr.innerHTML = '<span></span><span>' + totalLabel + '</span><span class="amt">' + yen(total) + '</span><span class="pc">100.0%</span>';
+    lg.appendChild(tr);
+  }
+
+  /* 円グラフ1: 年収の構成 */
+  var slices1 = [net].concat(deductions);
+  makeDonut("donut", slices1, GROSS, "額面");
+  makeLegend("legend", slices1, GROSS, "額面", "給与収入 合計");
+
+  /* 円グラフ2: 可処分所得の使いみち（本厚木・単身モデル、年額） */
+  var NET = 7266400;
+  var slices2 = [
+    { name: "貯蓄可能額",       amt: 4542400, color: "var(--s1)" },
+    { name: "家賃",             amt: 720000,  color: "var(--s2)" },
+    { name: "食費",             amt: 540000,  color: "var(--s3)" },
+    { name: "車両維持費",       amt: 204000,  color: "var(--s6)" },
+    { name: "駐車場代",         amt: 144000,  color: "var(--s6l)" },
+    { name: "水道光熱費",       amt: 156000,  color: "var(--s5)" },
+    { name: "交際費",           amt: 180000,  color: "var(--s4)" },
+    { name: "通信費",           amt: 120000,  color: "var(--s7)" },
+    { name: "医療費",           amt: 84000,   color: "var(--s8)" },
+    { name: "その他の生活費",   amt: 576000,  color: "var(--s9)" }
+  ];
+  makeDonut("donut2", slices2, NET, "可処分所得");
+  makeLegend("legend2", slices2, NET, "可処分所得", "可処分所得 合計");
+
+  /* 円グラフ3: 可処分所得の使いみち（月額） */
+  var NET_M = 605533;
+  var slices3 = [
+    { name: "貯蓄可能額",       amt: 378533, color: "var(--s1)" },
+    { name: "家賃",             amt: 60000,  color: "var(--s2)" },
+    { name: "食費",             amt: 45000,  color: "var(--s3)" },
+    { name: "車両維持費",       amt: 17000,  color: "var(--s6)" },
+    { name: "駐車場代",         amt: 12000,  color: "var(--s6l)" },
+    { name: "水道光熱費",       amt: 13000,  color: "var(--s5)" },
+    { name: "交際費",           amt: 15000,  color: "var(--s4)" },
+    { name: "通信費",           amt: 10000,  color: "var(--s7)" },
+    { name: "医療費",           amt: 7000,   color: "var(--s8)" },
+    { name: "その他の生活費",   amt: 48000,  color: "var(--s9)" }
+  ];
+  makeDonut("donut3", slices3, NET_M, "月額可処分所得");
+  makeLegend("legend3", slices3, NET_M, "月額可処分所得", "可処分所得（月額） 合計");
+
+  /* 円グラフ4: 平均年収478万円の場合（年額、生活費は据え置き） */
+  var NET_AVG = 3730120;
+  var slices4 = [
+    { name: "貯蓄可能額",       amt: 1006120, color: "var(--s1)" },
+    { name: "家賃",             amt: 720000,  color: "var(--s2)" },
+    { name: "食費",             amt: 540000,  color: "var(--s3)" },
+    { name: "車両維持費",       amt: 204000,  color: "var(--s6)" },
+    { name: "駐車場代",         amt: 144000,  color: "var(--s6l)" },
+    { name: "水道光熱費",       amt: 156000,  color: "var(--s5)" },
+    { name: "交際費",           amt: 180000,  color: "var(--s4)" },
+    { name: "通信費",           amt: 120000,  color: "var(--s7)" },
+    { name: "医療費",           amt: 84000,   color: "var(--s8)" },
+    { name: "その他の生活費",   amt: 576000,  color: "var(--s9)" }
+  ];
+  makeDonut("donut4", slices4, NET_AVG, "可処分所得");
+  makeLegend("legend4", slices4, NET_AVG, "可処分所得", "可処分所得 合計");
+
+  /* 円グラフ5: 平均年収478万円の場合（月額） */
+  var NET_AVG_M = 310843;
+  var slices5 = [
+    { name: "貯蓄可能額",       amt: 83843,  color: "var(--s1)" },
+    { name: "家賃",             amt: 60000,  color: "var(--s2)" },
+    { name: "食費",             amt: 45000,  color: "var(--s3)" },
+    { name: "車両維持費",       amt: 17000,  color: "var(--s6)" },
+    { name: "駐車場代",         amt: 12000,  color: "var(--s6l)" },
+    { name: "水道光熱費",       amt: 13000,  color: "var(--s5)" },
+    { name: "交際費",           amt: 15000,  color: "var(--s4)" },
+    { name: "通信費",           amt: 10000,  color: "var(--s7)" },
+    { name: "医療費",           amt: 7000,   color: "var(--s8)" },
+    { name: "その他の生活費",   amt: 48000,  color: "var(--s9)" }
+  ];
+  makeDonut("donut5", slices5, NET_AVG_M, "月額可処分所得");
+  makeLegend("legend5", slices5, NET_AVG_M, "月額可処分所得", "可処分所得（月額） 合計");
+
+  /* 円グラフ6・7: メイツ本厚木を購入した場合（年収1,000万円、年額・月額） */
+  var slices6 = [
+    { name: "貯蓄可能額",       amt: 3340684, color: "var(--s1)" },
+    { name: "住宅費（購入）",   amt: 1957716, color: "var(--s2)" },
+    { name: "食費",             amt: 540000,  color: "var(--s3)" },
+    { name: "車両維持費",       amt: 204000,  color: "var(--s6)" },
+    { name: "駐車場代",         amt: 144000,  color: "var(--s6l)" },
+    { name: "水道光熱費",       amt: 156000,  color: "var(--s5)" },
+    { name: "交際費",           amt: 180000,  color: "var(--s4)" },
+    { name: "通信費",           amt: 120000,  color: "var(--s7)" },
+    { name: "医療費",           amt: 84000,   color: "var(--s8)" },
+    { name: "その他の生活費",   amt: 540000,  color: "var(--s9)" }
+  ];
+  makeDonut("donut6", slices6, NET, "可処分所得");
+  makeLegend("legend6", slices6, NET, "可処分所得", "可処分所得 合計");
+
+  var slices7 = [
+    { name: "貯蓄可能額",       amt: 278390, color: "var(--s1)" },
+    { name: "住宅費（購入）",   amt: 163143, color: "var(--s2)" },
+    { name: "食費",             amt: 45000,  color: "var(--s3)" },
+    { name: "車両維持費",       amt: 17000,  color: "var(--s6)" },
+    { name: "駐車場代",         amt: 12000,  color: "var(--s6l)" },
+    { name: "水道光熱費",       amt: 13000,  color: "var(--s5)" },
+    { name: "交際費",           amt: 15000,  color: "var(--s4)" },
+    { name: "通信費",           amt: 10000,  color: "var(--s7)" },
+    { name: "医療費",           amt: 7000,   color: "var(--s8)" },
+    { name: "その他の生活費",   amt: 45000,  color: "var(--s9)" }
+  ];
+  makeDonut("donut7", slices7, NET_M, "月額可処分所得");
+  makeLegend("legend7", slices7, NET_M, "月額可処分所得", "可処分所得（月額） 合計");
+
+  /* 貯蓄可能額の比較バー */
+  var MAXS = 5000000;
+  var sb = document.getElementById("savebars");
+  [
+    { name: "① 年収1,000万円", amt: 4542400 },
+    { name: "③ 平均年収478万円", amt: 1006120 }
+  ].forEach(function (d) {
+    var row = document.createElement("div");
+    row.className = "barrow";
+    var w = (d.amt / MAXS * 100);
+    row.innerHTML =
+      '<div class="name">' + d.name + '</div>' +
+      '<div class="bartrack">' +
+        '<div class="gridlines"></div>' +
+        '<div class="baseline-rule"></div>' +
+        '<div class="bar" style="width:' + w + '%; background:var(--s1)"></div>' +
+        '<div class="barval" style="left:calc(' + w + '% + 8px)">' + yen(d.amt) + '</div>' +
+      '</div>';
+    var gl = row.querySelector(".gridlines");
+    [100, 200, 300, 400, 500].forEach(function (m) {
+      var i = document.createElement("i");
+      i.style.left = (m * 10000 / MAXS * 100) + "%";
+      gl.appendChild(i);
+    });
+    sb.appendChild(row);
+  });
+  var ax2 = document.createElement("div");
+  ax2.className = "barrow";
+  ax2.innerHTML = '<div class="name"></div><div class="bargrid"></div>';
+  var grid2 = ax2.querySelector(".bargrid");
+  [0, 100, 200, 300, 400, 500].forEach(function (m) {
+    var s = document.createElement("span");
+    s.style.left = (m * 10000 / MAXS * 100) + "%";
+    s.textContent = m === 0 ? "0" : m + "万円";
+    grid2.appendChild(s);
+  });
+  sb.appendChild(ax2);
+})();
+</script>
+
+</html>
