@@ -108,6 +108,29 @@
     margin: 0 0 10px;
   }
 
+  /* ---- 年収セレクタ ---- */
+  .picker {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 10px 14px;
+    background: var(--surface-1);
+    border: 1px solid var(--ring);
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin-top: 18px;
+  }
+  .picker label { font-size: 0.85rem; font-weight: 700; }
+  .picker select {
+    font: inherit; font-size: 0.95rem; font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-1);
+    background: var(--page);
+    border: 1px solid var(--baseline);
+    border-radius: 7px;
+    padding: 7px 12px;
+    cursor: pointer;
+  }
+  .picker select:focus-visible { outline: 2px solid var(--s1); outline-offset: 2px; }
+  .picker .hint { font-size: 0.78rem; color: var(--ink-2); }
+
   .card {
     background: var(--surface-1);
     border: 1px solid var(--ring);
@@ -204,28 +227,37 @@
 
 <div class="wrap">
   <header>
-    <p class="eyebrow">給与収入 1,000万円 ・ 単身者 ・ 神奈川県厚木市在住 ・ 2025年（令和7年）分</p>
-    <h1>年収1,000万円の可処分所得</h1>
-    <p class="lede">神奈川県厚木市在住・給与収入1,000万円の単身者について、社会保険料・所得税・住民税を差し引いた可処分所得（手取り）を試算したものです。</p>
+    <p class="eyebrow" id="hd-eyebrow"></p>
+    <h1 id="hd-title"></h1>
+    <p class="lede" id="hd-lede"></p>
+    <div class="picker">
+      <label for="grossSelect">年収（額面）</label>
+      <select id="grossSelect">
+        <option value="6000000">600万円</option>
+        <option value="8000000">800万円</option>
+        <option value="10000000" selected>1,000万円</option>
+      </select>
+      <span class="hint">選んだ年収に応じて、①②④の金額・グラフ・表がすべて再計算されます（③の平均年収478万円は比較対象として固定）。</span>
+    </div>
   </header>
 
-  <h2 class="chapter">① 年収1,000万円の可処分所得</h2>
+  <h2 class="chapter" id="ch1-title"></h2>
 
   <div class="stats">
     <div class="tile hero">
       <p class="label">可処分所得（手取り）</p>
-      <p class="value">726<small>万</small>6,400<small>円</small></p>
-      <p class="note">月あたり約60.6万円</p>
+      <p class="value" id="t1-net"></p>
+      <p class="note" id="t1-net-note"></p>
     </div>
     <div class="tile">
       <p class="label">手取り率</p>
-      <p class="value">72.7<small>%</small></p>
+      <p class="value" id="t1-rate"></p>
       <p class="note">額面に対する割合</p>
     </div>
     <div class="tile">
       <p class="label">控除合計（税・社会保険料）</p>
-      <p class="value">273<small>万</small>3,600<small>円</small></p>
-      <p class="note">額面の27.3%</p>
+      <p class="value" id="t1-ded"></p>
+      <p class="note" id="t1-ded-note"></p>
     </div>
   </div>
 
@@ -236,13 +268,13 @@
   </section>
 
   <section class="card">
-    <h2>年収1,000万円の構成（年額）</h2>
+    <h2 id="ch1-donut-title"></h2>
     <p class="sub">額面年収に占める可処分所得と各控除の割合。</p>
     <div class="donutwrap">
       <div class="donutbox">
-        <svg id="donut" viewBox="0 0 260 260" role="img" aria-label="年収1,000万円の構成の円グラフ。可処分所得72.7%、所得税8.3%、厚生年金7.1%、住民税6.4%、健康保険4.9%、雇用保険0.5%。"></svg>
+        <svg id="donut" viewBox="0 0 260 260" role="img"></svg>
         <div class="donut-center">
-          <div class="pct">72.7%</div>
+          <div class="pct" id="donut-pct"></div>
           <div class="lbl">可処分所得</div>
         </div>
       </div>
@@ -253,69 +285,31 @@
   <section class="card">
     <h2>計算過程</h2>
     <p class="sub">2025年度税制（基礎控除の改正後）に基づく概算です。</p>
-    <div class="tables">
-      <table>
-        <caption>（1）社会保険料（年額）</caption>
-        <tr><td>厚生年金保険料（9.15%・上限適用）</td><td class="num">713,700円</td></tr>
-        <tr><td>健康保険料（協会けんぽ神奈川 4.96%）</td><td class="num">494,000円</td></tr>
-        <tr><td>雇用保険料（0.55%）</td><td class="num">55,000円</td></tr>
-        <tr class="total"><td>社会保険料 合計</td><td class="num">1,262,700円</td></tr>
-      </table>
-      <table>
-        <caption>（2）所得税（復興特別所得税含む）</caption>
-        <tr><td>給与収入</td><td class="num">10,000,000円</td></tr>
-        <tr class="indent"><td>給与所得控除（上限）</td><td class="num">▲1,950,000円</td></tr>
-        <tr><td>給与所得</td><td class="num">8,050,000円</td></tr>
-        <tr class="indent"><td>社会保険料控除</td><td class="num">▲1,262,700円</td></tr>
-        <tr class="indent"><td>基礎控除</td><td class="num">▲580,000円</td></tr>
-        <tr><td>課税所得（千円未満切捨）</td><td class="num">6,207,000円</td></tr>
-        <tr><td>税率20% − 427,500円</td><td class="num">813,900円</td></tr>
-        <tr class="total"><td>所得税額（×1.021）</td><td class="num">830,900円</td></tr>
-      </table>
-      <table>
-        <caption>（3）住民税（厚木市・翌年度課税）</caption>
-        <tr><td>給与所得</td><td class="num">8,050,000円</td></tr>
-        <tr class="indent"><td>社会保険料控除</td><td class="num">▲1,262,700円</td></tr>
-        <tr class="indent"><td>基礎控除</td><td class="num">▲430,000円</td></tr>
-        <tr><td>課税所得（千円未満切捨）</td><td class="num">6,357,000円</td></tr>
-        <tr><td>市民税所得割 6% − 調整控除1,500円</td><td class="num">379,900円</td></tr>
-        <tr><td>県民税所得割 4.025% − 調整控除1,000円</td><td class="num">254,800円</td></tr>
-        <tr><td>均等割・森林環境税（県+300円含む）</td><td class="num">5,300円</td></tr>
-        <tr class="total"><td>住民税額</td><td class="num">640,000円</td></tr>
-      </table>
-      <table>
-        <caption>（4）可処分所得</caption>
-        <tr><td>給与収入</td><td class="num">10,000,000円</td></tr>
-        <tr class="indent"><td>社会保険料</td><td class="num">▲1,262,700円</td></tr>
-        <tr class="indent"><td>所得税</td><td class="num">▲830,900円</td></tr>
-        <tr class="indent"><td>住民税</td><td class="num">▲640,000円</td></tr>
-        <tr class="total"><td>可処分所得</td><td class="num">7,266,400円</td></tr>
-      </table>
-    </div>
+    <div class="tables" id="calc-tables"></div>
   </section>
 
   <h2 class="chapter">② 生活費用と貯蓄可能額</h2>
 
   <section class="card">
     <h2>可処分所得の使いみち（年額）</h2>
-    <p class="sub">本厚木駅から徒歩10分圏内で暮らす単身者の平均的な生活費（推測を含む概算）を、可処分所得726万6,400円（＝100%）から差し引いたモデルです。円グラフでは日用品・被服・娯楽・保険などの6項目を「その他の生活費」としてまとめています（個別の金額は下の表を参照）。</p>
+    <p class="sub" id="ch2-sub"></p>
     <div class="stats" style="margin-bottom:18px">
       <div class="tile hero">
         <p class="label">貯蓄可能額（年間）</p>
-        <p class="value">454<small>万</small>2,400<small>円</small></p>
-        <p class="note">可処分所得の62.5% ・ 月あたり約37.9万円</p>
+        <p class="value" id="t2-save"></p>
+        <p class="note" id="t2-save-note"></p>
       </div>
       <div class="tile">
         <p class="label">生活費合計（年間）</p>
         <p class="value">272<small>万</small>4,000<small>円</small></p>
-        <p class="note">可処分所得の37.5% ・ 月あたり22.7万円</p>
+        <p class="note" id="t2-cost-note"></p>
       </div>
     </div>
     <div class="donutwrap">
       <div class="donutbox">
-        <svg id="donut2" viewBox="0 0 260 260" role="img" aria-label="可処分所得の使いみちの円グラフ。貯蓄可能額62.5%、家賃9.9%、食費7.4%、車両維持費2.8%、駐車場代2.0%、水道光熱費2.1%、交際費2.5%、通信費1.7%、医療費1.2%、その他の生活費7.9%。"></svg>
+        <svg id="donut2" viewBox="0 0 260 260" role="img"></svg>
         <div class="donut-center">
-          <div class="pct">62.5%</div>
+          <div class="pct" id="donut2-pct"></div>
           <div class="lbl">貯蓄可能額</div>
         </div>
       </div>
@@ -339,18 +333,18 @@
       <tr><td>住まいの更新料・火災保険</td><td class="num">3,000円</td><td class="num">36,000円</td><td>2年毎の更新料（家賃1か月分）と火災保険料の月割</td></tr>
       <tr><td>予備費（帰省・家電買替・冠婚葬祭など）</td><td class="num">10,000円</td><td class="num">120,000円</td><td>不定期の特別支出の月割</td></tr>
       <tr class="total"><td>生活費 合計</td><td class="num">227,000円</td><td class="num">2,724,000円</td><td></td></tr>
-      <tr class="total"><td>貯蓄可能額</td><td class="num">約378,500円</td><td class="num">4,542,400円</td><td>可処分所得 7,266,400円 − 生活費 2,724,000円</td></tr>
+      <tr class="total"><td>貯蓄可能額</td><td class="num" id="tbl2-save-m"></td><td class="num" id="tbl2-save-y"></td><td id="tbl2-save-note"></td></tr>
     </table>
   </section>
 
   <section class="card">
     <h2>可処分所得の使いみち（月額）</h2>
-    <p class="sub">月あたりの可処分所得 605,533円（年額の1/12）を100%とした内訳です。</p>
+    <p class="sub" id="ch2m-sub"></p>
     <div class="donutwrap">
       <div class="donutbox">
-        <svg id="donut3" viewBox="0 0 260 260" role="img" aria-label="可処分所得（月額）の使いみちの円グラフ。貯蓄可能額62.5%、家賃9.9%、食費7.4%、車両維持費2.8%、駐車場代2.0%、水道光熱費2.1%、交際費2.5%、通信費1.7%、医療費1.2%、その他の生活費7.9%。"></svg>
+        <svg id="donut3" viewBox="0 0 260 260" role="img"></svg>
         <div class="donut-center">
-          <div class="pct">62.5%</div>
+          <div class="pct" id="donut3-pct"></div>
           <div class="lbl">貯蓄可能額</div>
         </div>
       </div>
@@ -375,9 +369,9 @@
         <p class="note">可処分所得の27.0% ・ 月あたり約8.4万円</p>
       </div>
       <div class="tile">
-        <p class="label">貯蓄可能額の減少（年収1,000万円比）</p>
-        <p class="value">▲353<small>万</small>6,280<small>円</small></p>
-        <p class="note">454万2,400円 → 100万6,120円（約78%減）</p>
+        <p class="label" id="t3-diff-label"></p>
+        <p class="value" id="t3-diff"></p>
+        <p class="note" id="t3-diff-note"></p>
       </div>
     </div>
     <div class="tables">
@@ -453,7 +447,7 @@
 
   <section class="card">
     <h2>貯蓄可能額の比較（年額）</h2>
-    <p class="sub">同じ生活水準（生活費 年272万4,000円）を維持した場合、平均年収では貯蓄可能額が年353万6,280円（約78%）減少します。月あたりでは約37.9万円 → 約8.4万円です。</p>
+    <p class="sub" id="cmp-sub"></p>
     <div class="barchart" id="savebars"></div>
   </section>
 
@@ -517,17 +511,17 @@
 
   <section class="card">
     <h2>可処分所得の使いみち（年額・購入した場合）</h2>
-    <p class="sub">年収1,000万円の可処分所得726万6,400円を100%とし、②の家賃・更新料等を④の住宅費（月16万3,143円）に置き換えた場合です。火災保険は購入時諸費用に含めたため「その他の生活費」は月4万5,000円に減っています。</p>
+    <p class="sub" id="ch4-sub"></p>
     <div class="stats" style="margin-bottom:18px">
       <div class="tile hero">
         <p class="label">貯蓄可能額（購入した場合・年間）</p>
-        <p class="value">334<small>万</small>684<small>円</small></p>
-        <p class="note">可処分所得の46.0% ・ 月あたり約27.8万円</p>
+        <p class="value" id="t4-save"></p>
+        <p class="note" id="t4-save-note"></p>
       </div>
       <div class="tile">
         <p class="label">賃貸のままとの差</p>
         <p class="value">▲120<small>万</small>1,716<small>円</small></p>
-        <p class="note">年454万2,400円 → 334万684円（月あたり約▲10万円）</p>
+        <p class="note" id="t4-diff-note"></p>
       </div>
       <div class="tile" style="border-left:4px solid var(--crit)">
         <p class="label">平均年収478万円で購入した場合</p>
@@ -537,9 +531,9 @@
     </div>
     <div class="donutwrap">
       <div class="donutbox">
-        <svg id="donut6" viewBox="0 0 260 260" role="img" aria-label="購入した場合の可処分所得の使いみちの円グラフ（年額）。貯蓄可能額46.0%、住宅費26.9%、食費7.4%、車両維持費2.8%、駐車場代2.0%、水道光熱費2.1%、交際費2.5%、通信費1.7%、医療費1.2%、その他の生活費7.4%。"></svg>
+        <svg id="donut6" viewBox="0 0 260 260" role="img"></svg>
         <div class="donut-center">
-          <div class="pct">46.0%</div>
+          <div class="pct" id="donut6-pct"></div>
           <div class="lbl">貯蓄可能額</div>
         </div>
       </div>
@@ -549,12 +543,12 @@
 
   <section class="card">
     <h2>可処分所得の使いみち（月額・購入した場合）</h2>
-    <p class="sub">月あたりの可処分所得 605,533円を100%とした内訳です。住宅費は月16万3,143円（ローン返済＋管理費＋修繕積立金＋固定資産税等）。</p>
+    <p class="sub" id="ch4m-sub"></p>
     <div class="donutwrap">
       <div class="donutbox">
-        <svg id="donut7" viewBox="0 0 260 260" role="img" aria-label="購入した場合の可処分所得（月額）の使いみちの円グラフ。貯蓄可能額46.0%、住宅費26.9%、食費7.4%、車両維持費2.8%、駐車場代2.0%、水道光熱費2.1%、交際費2.5%、通信費1.7%、医療費1.2%、その他の生活費7.4%。"></svg>
+        <svg id="donut7" viewBox="0 0 260 260" role="img"></svg>
         <div class="donut-center">
-          <div class="pct">46.0%</div>
+          <div class="pct" id="donut7-pct"></div>
           <div class="lbl">貯蓄可能額</div>
         </div>
       </div>
@@ -600,10 +594,10 @@
     <h2>前提条件</h2>
     <ul>
       <li>単身者・40歳未満（介護保険料なし）・扶養親族なし</li>
-      <li>賞与なし（年収を12等分して毎月支給）と仮定。標準報酬月額：健康保険83万円、厚生年金は上限65万円</li>
+      <li id="as-grade"></li>
       <li>健康保険は協会けんぽ・神奈川県（令和7年度 料率9.92%、労使折半）</li>
       <li>所得控除は社会保険料控除と基礎控除のみ（iDeCo・生命保険料控除・ふるさと納税等は考慮せず）</li>
-      <li>所得税は令和7年分（基礎控除58万円）で計算</li>
+      <li id="as-basic"></li>
       <li>住民税は厚木市の令和8年度分（基礎控除43万円）。神奈川県の水源環境保全・再生のための超過課税（所得割+0.025%・均等割+300円）を反映</li>
       <li>③の平均年収478万円は国税庁「令和6年分 民間給与実態統計調査」の平均給与。標準報酬月額41万円、所得税の基礎控除は68万円（令和7・8年分の上乗せ後）で計算</li>
       <li>③の生活費は②のモデル（月22万7,000円）を減らさずそのまま適用</li>
@@ -622,18 +616,131 @@
 
 <script>
 (function () {
-  var GROSS = 10000000;
-  var deductions = [
-    { name: "所得税",   amt: 830900, color: "var(--s2)" },
-    { name: "厚生年金", amt: 713700, color: "var(--s3)" },
-    { name: "住民税",   amt: 640000, color: "var(--s4)" },
-    { name: "健康保険", amt: 494000, color: "var(--s5)" },
-    { name: "雇用保険", amt: 55000,  color: "var(--s6)" }
+  /* ============================================================
+     可処分所得の計算エンジン
+     年収（額面）を入力すると、社会保険料・所得税・住民税・可処分所得を返す。
+     ①の年収1,000万円および③の平均年収478万円の掲載値を再現することを確認済み。
+     ============================================================ */
+
+  /* 標準報酬月額（協会けんぽ 令和7年度）: 報酬月額がmin以上ならその等級 */
+  var GRADES = [
+    [0,58000],[63000,68000],[73000,78000],[83000,88000],[93000,98000],
+    [101000,104000],[107000,110000],[114000,118000],[122000,126000],[130000,134000],
+    [138000,142000],[146000,150000],[155000,160000],[165000,170000],[175000,180000],
+    [185000,190000],[195000,200000],[210000,220000],[230000,240000],[250000,260000],
+    [270000,280000],[290000,300000],[310000,320000],[330000,340000],[350000,360000],
+    [370000,380000],[395000,410000],[425000,440000],[455000,470000],[485000,500000],
+    [515000,530000],[545000,560000],[575000,590000],[605000,620000],[635000,650000],
+    [665000,680000],[695000,710000],[730000,750000],[770000,790000],[810000,830000],
+    [855000,880000],[905000,930000],[955000,980000],[1005000,1030000],[1055000,1090000],
+    [1115000,1150000],[1175000,1210000],[1235000,1270000],[1295000,1330000],[1355000,1390000]
   ];
-  var net = { name: "可処分所得", amt: 7266400, color: "var(--s1)" };
+  var PENSION_MIN = 88000, PENSION_MAX = 650000; /* 厚生年金の等級上下限 */
+  var RATE_PENSION = 0.0915;  /* 厚生年金 労使折半後 */
+  var RATE_HEALTH  = 0.0496;  /* 協会けんぽ神奈川 9.92% の労使折半後 */
+  var RATE_EMPLOY  = 0.0055;  /* 雇用保険 労働者負担 */
+
+  function grade(monthly) {
+    var v = GRADES[0][1];
+    for (var i = 0; i < GRADES.length; i++) if (monthly >= GRADES[i][0]) v = GRADES[i][1];
+    return v;
+  }
+  function round100(n) { return Math.round(n / 100) * 100; }
+  function floor100(n) { return Math.floor(n / 100) * 100; }
+  function floor1000(n) { return Math.floor(n / 1000) * 1000; }
+
+  /* 給与所得控除（令和7年分以降） */
+  function salaryDeduction(gross) {
+    if (gross <= 1625000) return { amt: 650000, label: "給与所得控除（最低保障）" };
+    if (gross <= 1800000) return { amt: gross * 0.4 - 100000, label: "給与所得控除（収入×40%−10万円）" };
+    if (gross <= 3600000) return { amt: gross * 0.3 + 80000,  label: "給与所得控除（収入×30%＋8万円）" };
+    if (gross <= 6600000) return { amt: gross * 0.2 + 440000, label: "給与所得控除（収入×20%＋44万円）" };
+    if (gross <= 8500000) return { amt: gross * 0.1 + 1100000, label: "給与所得控除（収入×10%＋110万円）" };
+    return { amt: 1950000, label: "給与所得控除（上限）" };
+  }
+
+  /* 所得税の基礎控除（令和7・8年分の上乗せ特例を反映） */
+  function basicDeductionTax(income) {
+    if (income <= 1320000) return 950000;
+    if (income <= 3360000) return 880000;
+    if (income <= 4890000) return 680000;
+    if (income <= 6550000) return 630000;
+    if (income <= 23500000) return 580000;
+    if (income <= 24000000) return 480000;
+    if (income <= 24500000) return 320000;
+    if (income <= 25000000) return 160000;
+    return 0;
+  }
+
+  /* 所得税の速算表 */
+  var TAX_BRACKETS = [
+    [1950000, 0.05, 0], [3300000, 0.10, 97500], [6950000, 0.20, 427500],
+    [9000000, 0.23, 636000], [18000000, 0.33, 1536000],
+    [40000000, 0.40, 2796000], [Infinity, 0.45, 4796000]
+  ];
+
+  function calc(gross) {
+    var monthly = gross / 12;
+    var g = grade(monthly);
+    var gPension = Math.min(Math.max(g, PENSION_MIN), PENSION_MAX);
+
+    var pension = round100(gPension * RATE_PENSION * 12);
+    var health  = round100(g * RATE_HEALTH * 12);
+    var employ  = round100(gross * RATE_EMPLOY);
+    var social  = pension + health + employ;
+
+    var sd = salaryDeduction(gross);
+    var income = gross - sd.amt;                  /* 給与所得＝合計所得金額 */
+    var basicT = basicDeductionTax(income);
+
+    var taxableT = Math.max(0, floor1000(income - social - basicT));
+    var br = TAX_BRACKETS[0];
+    for (var i = 0; i < TAX_BRACKETS.length; i++) { br = TAX_BRACKETS[i]; if (taxableT <= br[0]) break; }
+    var baseTax = Math.max(0, taxableT * br[1] - br[2]);
+    var incomeTax = floor100(baseTax * 1.021);
+
+    var basicR = 430000;                          /* 住民税の基礎控除 */
+    var taxableR = Math.max(0, floor1000(income - social - basicR));
+    var cityTax = taxableR > 0 ? Math.max(0, floor100(taxableR * 0.06 - 1500)) : 0;
+    var prefTax = taxableR > 0 ? Math.max(0, floor100(taxableR * 0.04025 - 1000)) : 0;
+    var flatTax = 5300;                           /* 均等割＋森林環境税（県+300円含む） */
+    var residentTax = cityTax + prefTax + flatTax;
+
+    var netAmt = gross - social - incomeTax - residentTax;
+    return {
+      gross: gross, gradeHealth: g, gradePension: gPension, pensionCapped: g > PENSION_MAX,
+      pension: pension, health: health, employ: employ, social: social,
+      salaryDed: sd, income: income, basicT: basicT, taxableT: taxableT,
+      bracketRate: br[1], bracketSub: br[2], baseTax: baseTax, incomeTax: incomeTax,
+      basicR: basicR, taxableR: taxableR, cityTax: cityTax, prefTax: prefTax,
+      flatTax: flatTax, residentTax: residentTax,
+      net: netAmt, netM: Math.round(netAmt / 12), rate: netAmt / gross
+    };
+  }
+
+  /* ---- 生活費・住宅費のモデル（年収によらず固定） ---- */
+  var LIVING_Y = 2724000, LIVING_M = 227000;      /* ②賃貸モデルの生活費 */
+  var BUY_LIVING_Y = 3925716, BUY_LIVING_M = 327143; /* ④購入モデル（家賃・更新料→住宅費に置換） */
+  var AVG = { gross: 4780000, net: 3730120, netM: 310843, save: 1006120 }; /* ③平均年収478万円（固定） */
 
   function yen(n) { return n.toLocaleString("ja-JP") + "円"; }
   function pctOf(n, total) { return (n / total * 100).toFixed(1) + "%"; }
+
+  /* 「726万6,400円」形式。html=true なら万・円を <small> で包む */
+  function manFmt(n, html) {
+    var sign = n < 0 ? "▲" : "";
+    var a = Math.abs(Math.round(n));
+    var m = Math.floor(a / 10000), r = a % 10000;
+    var w = function (u) { return html ? "<small>" + u + "</small>" : u; };
+    if (m === 0) return sign + r.toLocaleString("ja-JP") + w("円");
+    if (r === 0) return sign + m.toLocaleString("ja-JP") + w("万円");
+    return sign + m.toLocaleString("ja-JP") + w("万") + r.toLocaleString("ja-JP") + w("円");
+  }
+  function manText(n) { return manFmt(n, false); }
+  function manHtml(n) { return manFmt(n, true); }
+  function man1(n) { return (n / 10000).toFixed(1) + "万円"; }
+  function setText(id, s) { document.getElementById(id).textContent = s; }
+  function setHtml(id, s) { document.getElementById(id).innerHTML = s; }
 
   /* tooltip */
   var tip = document.getElementById("tip");
@@ -657,48 +764,51 @@
   }
 
   /* ---- bar chart ---- */
-  var MAX = 1000000; /* axis max */
-  var TICKS = [0, 25, 50, 75, 100]; /* 万円 */
-  var bc = document.getElementById("barchart");
-  deductions.forEach(function (d) {
-    var row = document.createElement("div");
-    row.className = "barrow";
-    var w = (d.amt / MAX * 100);
-    row.innerHTML =
-      '<div class="name">' + d.name + '</div>' +
-      '<div class="bartrack">' +
-        '<div class="gridlines"></div>' +
-        '<div class="baseline-rule"></div>' +
-        '<div class="bar" style="width:' + w + '%; background:' + d.color + '"></div>' +
-        '<div class="barval" style="left:calc(' + w + '% + 8px)">' + yen(d.amt) + '</div>' +
-      '</div>';
-    var gl = row.querySelector(".gridlines");
-    TICKS.forEach(function (m) {
-      if (m === 0) return;
-      var i = document.createElement("i");
-      i.style.left = (m * 10000 / MAX * 100) + "%";
-      gl.appendChild(i);
+  function makeBars(hostId, rows, max, ticks, tipTotal, tipBase) {
+    var bc = document.getElementById(hostId);
+    bc.innerHTML = "";
+    rows.forEach(function (d) {
+      var row = document.createElement("div");
+      row.className = "barrow";
+      var w = (d.amt / max * 100);
+      row.innerHTML =
+        '<div class="name">' + d.name + '</div>' +
+        '<div class="bartrack">' +
+          '<div class="gridlines"></div>' +
+          '<div class="baseline-rule"></div>' +
+          '<div class="bar" style="width:' + w + '%; background:' + (d.color || "var(--s1)") + '"></div>' +
+          '<div class="barval" style="left:calc(' + w + '% + 8px)">' + yen(d.amt) + '</div>' +
+        '</div>';
+      var gl = row.querySelector(".gridlines");
+      ticks.forEach(function (m) {
+        if (m === 0) return;
+        var i = document.createElement("i");
+        i.style.left = (m * 10000 / max * 100) + "%";
+        gl.appendChild(i);
+      });
+      if (tipTotal) bindTip(row.querySelector(".bartrack"), d.name, d.amt, tipTotal, tipBase);
+      bc.appendChild(row);
     });
-    bindTip(row.querySelector(".bartrack"), d.name, d.amt, GROSS, "額面");
-    bc.appendChild(row);
-  });
-  /* axis labels */
-  var ax = document.createElement("div");
-  ax.className = "barrow";
-  ax.innerHTML = '<div class="name"></div><div class="bargrid"></div>';
-  var grid = ax.querySelector(".bargrid");
-  TICKS.forEach(function (m) {
-    var s = document.createElement("span");
-    s.style.left = (m * 10000 / MAX * 100) + "%";
-    s.textContent = m === 0 ? "0" : m + "万円";
-    grid.appendChild(s);
-  });
-  bc.appendChild(ax);
+    var ax = document.createElement("div");
+    ax.className = "barrow";
+    ax.innerHTML = '<div class="name"></div><div class="bargrid"></div>';
+    var grid = ax.querySelector(".bargrid");
+    ticks.forEach(function (m) {
+      var s = document.createElement("span");
+      s.style.left = (m * 10000 / max * 100) + "%";
+      s.textContent = m === 0 ? "0" : m + "万円";
+      grid.appendChild(s);
+    });
+    bc.appendChild(ax);
+  }
 
   /* ---- donuts ---- */
   var NS = "http://www.w3.org/2000/svg";
   function makeDonut(svgId, slices, total, base) {
     var svg = document.getElementById(svgId);
+    svg.innerHTML = "";
+    svg.setAttribute("aria-label",
+      "円グラフ。" + slices.map(function (d) { return d.name + pctOf(d.amt, total); }).join("、") + "。");
     var cx = 130, cy = 130, rOut = 118, rIn = 74;
     var start = -Math.PI / 2;
     slices.forEach(function (d) {
@@ -726,6 +836,7 @@
   }
   function makeLegend(legendId, slices, total, base, totalLabel) {
     var lg = document.getElementById(legendId);
+    lg.innerHTML = "";
     slices.forEach(function (d) {
       var row = document.createElement("div");
       row.className = "lrow";
@@ -743,15 +854,30 @@
     lg.appendChild(tr);
   }
 
-  /* 円グラフ1: 年収の構成 */
-  var slices1 = [net].concat(deductions);
-  makeDonut("donut", slices1, GROSS, "額面");
-  makeLegend("legend", slices1, GROSS, "額面", "給与収入 合計");
+  /* ============================================================
+     描画：選択された年収でページ全体を再計算・再描画する
+     ============================================================ */
+  function render(gross) {
+  var c = calc(gross);
+  var NET = c.net, NET_M = c.netM;
+
+  /* 棒グラフ・円グラフ1: 控除の内訳と年収の構成 */
+  var deductions = [
+    { name: "所得税",   amt: c.incomeTax,   color: "var(--s2)" },
+    { name: "厚生年金", amt: c.pension,     color: "var(--s3)" },
+    { name: "住民税",   amt: c.residentTax, color: "var(--s4)" },
+    { name: "健康保険", amt: c.health,      color: "var(--s5)" },
+    { name: "雇用保険", amt: c.employ,      color: "var(--s6)" }
+  ].sort(function (a, b) { return b.amt - a.amt; });
+  makeBars("barchart", deductions, 1000000, [0, 25, 50, 75, 100], gross, "額面");
+
+  var slices1 = [{ name: "可処分所得", amt: NET, color: "var(--s1)" }].concat(deductions);
+  makeDonut("donut", slices1, gross, "額面");
+  makeLegend("legend", slices1, gross, "額面", "給与収入 合計");
 
   /* 円グラフ2: 可処分所得の使いみち（本厚木・単身モデル、年額） */
-  var NET = 7266400;
   var slices2 = [
-    { name: "貯蓄可能額",       amt: 4542400, color: "var(--s1)" },
+    { name: "貯蓄可能額",       amt: NET - LIVING_Y, color: "var(--s1)" },
     { name: "家賃",             amt: 720000,  color: "var(--s2)" },
     { name: "食費",             amt: 540000,  color: "var(--s3)" },
     { name: "車両維持費",       amt: 204000,  color: "var(--s6)" },
@@ -766,9 +892,8 @@
   makeLegend("legend2", slices2, NET, "可処分所得", "可処分所得 合計");
 
   /* 円グラフ3: 可処分所得の使いみち（月額） */
-  var NET_M = 605533;
   var slices3 = [
-    { name: "貯蓄可能額",       amt: 378533, color: "var(--s1)" },
+    { name: "貯蓄可能額",       amt: NET_M - LIVING_M, color: "var(--s1)" },
     { name: "家賃",             amt: 60000,  color: "var(--s2)" },
     { name: "食費",             amt: 45000,  color: "var(--s3)" },
     { name: "車両維持費",       amt: 17000,  color: "var(--s6)" },
@@ -816,9 +941,9 @@
   makeDonut("donut5", slices5, NET_AVG_M, "月額可処分所得");
   makeLegend("legend5", slices5, NET_AVG_M, "月額可処分所得", "可処分所得（月額） 合計");
 
-  /* 円グラフ6・7: メイツ本厚木を購入した場合（年収1,000万円、年額・月額） */
+  /* 円グラフ6・7: メイツ本厚木を購入した場合（年額・月額） */
   var slices6 = [
-    { name: "貯蓄可能額",       amt: 3340684, color: "var(--s1)" },
+    { name: "貯蓄可能額",       amt: NET - BUY_LIVING_Y, color: "var(--s1)" },
     { name: "住宅費（購入）",   amt: 1957716, color: "var(--s2)" },
     { name: "食費",             amt: 540000,  color: "var(--s3)" },
     { name: "車両維持費",       amt: 204000,  color: "var(--s6)" },
@@ -833,7 +958,7 @@
   makeLegend("legend6", slices6, NET, "可処分所得", "可処分所得 合計");
 
   var slices7 = [
-    { name: "貯蓄可能額",       amt: 278390, color: "var(--s1)" },
+    { name: "貯蓄可能額",       amt: NET_M - BUY_LIVING_M, color: "var(--s1)" },
     { name: "住宅費（購入）",   amt: 163143, color: "var(--s2)" },
     { name: "食費",             amt: 45000,  color: "var(--s3)" },
     { name: "車両維持費",       amt: 17000,  color: "var(--s6)" },
@@ -848,42 +973,113 @@
   makeLegend("legend7", slices7, NET_M, "月額可処分所得", "可処分所得（月額） 合計");
 
   /* 貯蓄可能額の比較バー */
-  var MAXS = 5000000;
-  var sb = document.getElementById("savebars");
-  [
-    { name: "① 年収1,000万円", amt: 4542400 },
-    { name: "③ 平均年収478万円", amt: 1006120 }
-  ].forEach(function (d) {
-    var row = document.createElement("div");
-    row.className = "barrow";
-    var w = (d.amt / MAXS * 100);
-    row.innerHTML =
-      '<div class="name">' + d.name + '</div>' +
-      '<div class="bartrack">' +
-        '<div class="gridlines"></div>' +
-        '<div class="baseline-rule"></div>' +
-        '<div class="bar" style="width:' + w + '%; background:var(--s1)"></div>' +
-        '<div class="barval" style="left:calc(' + w + '% + 8px)">' + yen(d.amt) + '</div>' +
-      '</div>';
-    var gl = row.querySelector(".gridlines");
-    [100, 200, 300, 400, 500].forEach(function (m) {
-      var i = document.createElement("i");
-      i.style.left = (m * 10000 / MAXS * 100) + "%";
-      gl.appendChild(i);
-    });
-    sb.appendChild(row);
-  });
-  var ax2 = document.createElement("div");
-  ax2.className = "barrow";
-  ax2.innerHTML = '<div class="name"></div><div class="bargrid"></div>';
-  var grid2 = ax2.querySelector(".bargrid");
-  [0, 100, 200, 300, 400, 500].forEach(function (m) {
-    var s = document.createElement("span");
-    s.style.left = (m * 10000 / MAXS * 100) + "%";
-    s.textContent = m === 0 ? "0" : m + "万円";
-    grid2.appendChild(s);
-  });
-  sb.appendChild(ax2);
+  var saveRent = NET - LIVING_Y;
+  var saveBuy  = NET - BUY_LIVING_Y;
+  var label    = manText(gross);
+  makeBars("savebars", [
+    { name: "① 年収" + label, amt: saveRent },
+    { name: "③ 平均年収478万円", amt: AVG.save }
+  ], 5000000, [0, 100, 200, 300, 400, 500]);
+
+  /* ---------------- 本文テキストの更新 ---------------- */
+  var down = Math.round((1 - AVG.save / saveRent) * 100);
+
+  document.title = "年収" + label + "の可処分所得（単身）";
+  setText("hd-eyebrow", "給与収入 " + label + " ・ 単身者 ・ 神奈川県厚木市在住 ・ 2025年（令和7年）分");
+  setText("hd-title", "年収" + label + "の可処分所得");
+  setText("hd-lede", "神奈川県厚木市在住・給与収入" + label + "の単身者について、社会保険料・所得税・住民税を差し引いた可処分所得（手取り）を試算したものです。");
+
+  /* ① */
+  setText("ch1-title", "① 年収" + label + "の可処分所得");
+  setHtml("t1-net", manHtml(NET));
+  setText("t1-net-note", "月あたり約" + man1(NET_M));
+  setHtml("t1-rate", (c.rate * 100).toFixed(1) + "<small>%</small>");
+  setHtml("t1-ded", manHtml(gross - NET));
+  setText("t1-ded-note", "額面の" + (100 - c.rate * 100).toFixed(1) + "%");
+  setText("ch1-donut-title", "年収" + label + "の構成（年額）");
+  setText("donut-pct", pctOf(NET, gross));
+  renderCalcTables(c);
+
+  /* ② */
+  setText("ch2-sub", "本厚木駅から徒歩10分圏内で暮らす単身者の平均的な生活費（推測を含む概算）を、可処分所得" + manText(NET) + "（＝100%）から差し引いたモデルです。円グラフでは日用品・被服・娯楽・保険などの6項目を「その他の生活費」としてまとめています（個別の金額は下の表を参照）。");
+  setHtml("t2-save", manHtml(saveRent));
+  setText("t2-save-note", "可処分所得の" + pctOf(saveRent, NET) + " ・ 月あたり約" + man1(NET_M - LIVING_M));
+  setText("t2-cost-note", "可処分所得の" + pctOf(LIVING_Y, NET) + " ・ 月あたり22.7万円");
+  setText("donut2-pct", pctOf(saveRent, NET));
+  setText("tbl2-save-m", yen(NET_M - LIVING_M));
+  setText("tbl2-save-y", yen(saveRent));
+  setText("tbl2-save-note", "可処分所得 " + yen(NET) + " − 生活費 2,724,000円");
+  setText("ch2m-sub", "月あたりの可処分所得 " + yen(NET_M) + "（年額の1/12）を100%とした内訳です。");
+  setText("donut3-pct", pctOf(saveRent, NET));
+
+  /* ③（平均年収478万円側は固定。選択年収との比較のみ更新） */
+  setText("t3-diff-label", "貯蓄可能額の減少（年収" + label + "比）");
+  setHtml("t3-diff", manHtml(-(saveRent - AVG.save)));
+  setText("t3-diff-note", manText(saveRent) + " → " + manText(AVG.save) + "（約" + down + "%減）");
+  setText("cmp-sub", "同じ生活水準（生活費 年272万4,000円）を維持した場合、平均年収では貯蓄可能額が年" + manText(saveRent - AVG.save) + "（約" + down + "%）減少します。月あたりでは約" + man1(NET_M - LIVING_M) + " → 約8.4万円です。");
+
+  /* ④ */
+  setText("ch4-sub", "年収" + label + "の可処分所得" + manText(NET) + "を100%とし、②の家賃・更新料等を④の住宅費（月16万3,143円）に置き換えた場合です。火災保険は購入時諸費用に含めたため「その他の生活費」は月4万5,000円に減っています。");
+  setHtml("t4-save", manHtml(saveBuy));
+  setText("t4-save-note", "可処分所得の" + pctOf(saveBuy, NET) + " ・ 月あたり約" + man1(NET_M - BUY_LIVING_M));
+  setText("t4-diff-note", "年" + manText(saveRent) + " → " + manText(saveBuy) + "（月あたり約▲10万円）");
+  setText("donut6-pct", pctOf(saveBuy, NET));
+  setText("ch4m-sub", "月あたりの可処分所得 " + yen(NET_M) + "を100%とした内訳です。住宅費は月16万3,143円（ローン返済＋管理費＋修繕積立金＋固定資産税等）。");
+  setText("donut7-pct", pctOf(saveBuy, NET));
+
+  /* 前提条件 */
+  setText("as-grade", "賞与なし（年収を12等分して毎月支給）と仮定。標準報酬月額：健康保険" + manText(c.gradeHealth) + "、厚生年金" + manText(c.gradePension) + (c.pensionCapped ? "（上限）" : ""));
+  setText("as-basic", "所得税は令和7年分（基礎控除" + manText(c.basicT) + "）で計算");
+  }
+
+  /* ---- 計算過程の表 ---- */
+  function renderCalcTables(c) {
+    function tr(label, amt, cls) {
+      return '<tr' + (cls ? ' class="' + cls + '"' : '') + '><td>' + label + '</td><td class="num">' + amt + '</td></tr>';
+    }
+    var minus = function (n) { return "▲" + yen(n); };
+    var rateLabel = "税率" + (c.bracketRate * 100) + "%" + (c.bracketSub ? " − " + yen(c.bracketSub) : "");
+
+    document.getElementById("calc-tables").innerHTML =
+      '<table><caption>（1）社会保険料（年額）</caption>' +
+        tr("厚生年金保険料（9.15%・標準報酬月額" + manText(c.gradePension) + (c.pensionCapped ? "・上限" : "") + "）", yen(c.pension)) +
+        tr("健康保険料（協会けんぽ神奈川 4.96%・標準報酬月額" + manText(c.gradeHealth) + "）", yen(c.health)) +
+        tr("雇用保険料（0.55%）", yen(c.employ)) +
+        tr("社会保険料 合計", yen(c.social), "total") +
+      '</table>' +
+      '<table><caption>（2）所得税（復興特別所得税含む）</caption>' +
+        tr("給与収入", yen(c.gross)) +
+        tr(c.salaryDed.label, minus(Math.round(c.salaryDed.amt)), "indent") +
+        tr("給与所得", yen(c.income)) +
+        tr("社会保険料控除", minus(c.social), "indent") +
+        tr("基礎控除" + (c.basicT > 580000 ? "（令和7年分・上乗せ後）" : ""), minus(c.basicT), "indent") +
+        tr("課税所得（千円未満切捨）", yen(c.taxableT)) +
+        tr(rateLabel, yen(Math.round(c.baseTax))) +
+        tr("所得税額（×1.021）", yen(c.incomeTax), "total") +
+      '</table>' +
+      '<table><caption>（3）住民税（厚木市・翌年度課税）</caption>' +
+        tr("給与所得", yen(c.income)) +
+        tr("社会保険料控除", minus(c.social), "indent") +
+        tr("基礎控除", minus(c.basicR), "indent") +
+        tr("課税所得（千円未満切捨）", yen(c.taxableR)) +
+        tr("市民税所得割 6% − 調整控除1,500円", yen(c.cityTax)) +
+        tr("県民税所得割 4.025% − 調整控除1,000円", yen(c.prefTax)) +
+        tr("均等割・森林環境税（県+300円含む）", yen(c.flatTax)) +
+        tr("住民税額", yen(c.residentTax), "total") +
+      '</table>' +
+      '<table><caption>（4）可処分所得</caption>' +
+        tr("給与収入", yen(c.gross)) +
+        tr("社会保険料", minus(c.social), "indent") +
+        tr("所得税", minus(c.incomeTax), "indent") +
+        tr("住民税", minus(c.residentTax), "indent") +
+        tr("可処分所得", yen(c.net), "total") +
+      '</table>';
+  }
+
+  /* ---- 起動・年収セレクタ ---- */
+  var sel = document.getElementById("grossSelect");
+  sel.addEventListener("change", function () { render(parseInt(sel.value, 10)); });
+  render(parseInt(sel.value, 10));
 })();
 </script>
 
