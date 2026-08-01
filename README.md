@@ -2,15 +2,17 @@
 
 給与収入1,000万円の単身者（神奈川県厚木市・本厚木駅徒歩10分圏在住）を起点に、可処分所得・生活費・貯蓄可能額・住宅購入・35年後の資産価値までを試算したHTMLレポート。
 
+- **公開URL**: https://kahoo-de3.github.io/honatsugi-life-cost/ … GitHub Pagesで公開中。GitHubアカウントなしで誰でも閲覧できる。
 - **成果物**: [`index.html`](./index.html) … 単一ファイルで完結（外部依存なし・ライト/ダークテーマ対応）。ブラウザで開くだけで表示できる。
 - **グラフ**: 棒グラフ・円グラフはHTML/SVG＋バニラJavaScriptで描画。データはすべて `index.html` 末尾の `<script>` 内にハードコードされている。
 
 ## 編集の仕方（別PCのClaude Codeでも継続可能）
 
-1. このリポジトリをクローン: `git clone <repo-url>`
+1. このリポジトリをクローン: `git clone https://github.com/kahoo-de3/honatsugi-life-cost.git`
 2. Claude Code / Claude で `index.html` を開いて編集
 3. グラフの数値を変えるときは `<script>` 内の `slices1`〜`slices7`, `deductions`, `NET` 等の配列を編集
 4. 前提を変えるときは本READMEの数値と `index.html` の表・サマリータイルを両方あわせて更新すること
+5. `git push` すると GitHub Pages（`main` ブランチのルート）に自動反映される（反映まで数十秒〜1分）
 
 ## ページ構成
 
