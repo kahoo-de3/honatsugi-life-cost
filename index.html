@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>年収1,000万円の可処分所得（単身）</title>
+<title>年収と可処分所得（単身）</title>
 <style>
   :root {
     color-scheme: light;
@@ -228,7 +228,7 @@
 <div class="wrap">
   <header>
     <p class="eyebrow" id="hd-eyebrow"></p>
-    <h1 id="hd-title"></h1>
+    <h1>年収と可処分所得</h1>
     <p class="lede" id="hd-lede"></p>
     <div class="picker">
       <label for="grossSelect">年収（額面）</label>
@@ -984,10 +984,8 @@
   /* ---------------- 本文テキストの更新 ---------------- */
   var down = Math.round((1 - AVG.save / saveRent) * 100);
 
-  document.title = "年収" + label + "の可処分所得（単身）";
   setText("hd-eyebrow", "給与収入 " + label + " ・ 単身者 ・ 神奈川県厚木市在住 ・ 2025年（令和7年）分");
-  setText("hd-title", "年収" + label + "の可処分所得");
-  setText("hd-lede", "神奈川県厚木市在住・給与収入" + label + "の単身者について、社会保険料・所得税・住民税を差し引いた可処分所得（手取り）を試算したものです。");
+  setText("hd-lede","神奈川県厚木市在住・給与収入" + label + "の単身者について、社会保険料・所得税・住民税を差し引いた可処分所得（手取り）を試算したものです。");
 
   /* ① */
   setText("ch1-title", "① 年収" + label + "の可処分所得");
